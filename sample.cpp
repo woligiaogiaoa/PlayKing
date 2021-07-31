@@ -57,9 +57,11 @@ int main()
 	// ReSharper disable once CppInconsistentNaming
 	const char* vertexShaderSource = "#version 330 core\n"
 		"layout (location = 0) in vec3 aPos;\n"
+		"out vec4 colorFromVertex;\n"
 		"void main()\n"
 		"{\n"
 		"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+		"   colorFromVertex=vec4(0.1f,0.1f,0.3f,1.0f);\n"
 		"}\0";
 
 	// ReSharper disable once CppInconsistentNaming
@@ -90,10 +92,84 @@ int main()
 	
 	// ReSharper disable once CppInconsistentNaming
 	// ReSharper disable once CppLocalVariableMayBeConst
+	//---------------------------------compile colorfulshader link program
+	float verticesColorful[] = {
+		// positions                         // colors
+		 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+		-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+		 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+	};
+
+	int newProgram = glCreateProgram();
+
+	// ReSharper disable once IdentifierTypo
+	const char* fragmentColorfulShaderSource = "#version 330 core\n"
+		"out vec4 FragColor;\n"
+		"in vec3 colorFromVertexShader;\n"
+		"void main()\n"
+		"{\n"
+		"   FragColor= vec4(colorFromVertexShader,1.0f);\n"
+		"}\0";
+
+
+	unsigned int colorShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+	glShaderSource(colorShader, 1, &fragmentColorfulShaderSource, nullptr);
+
+	glCompileShader(colorShader);
+
+	const char* twoAttriShader =  "#version 330 core\n"
+		"layout (location = 0) in vec3 aPos;\n"
+		"layout (location = 1) in vec3 aColor;\n"
+		"out vec3 colorFromVertexShader;\n"
+	
+		"void main()\n"
+		"{\n"
+		"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+		"   colorFromVertexShader=vec3(aColor);\n"
+		"}\0";
+
+	unsigned int colorShader1 = glCreateShader(GL_VERTEX_SHADER);
+
+	glShaderSource(colorShader1, 1, &twoAttriShader, nullptr);
+
+	glCompileShader(colorShader1);
+
+	glAttachShader(newProgram, colorShader1);
+	glAttachShader(newProgram, colorShader);
+	glLinkProgram(newProgram);
+
+	unsigned int vao2, vbo2;
+
+	glGenBuffers(1, &vbo2);
+	glGenVertexArrays(1, &vao2); 
+
+	glBindVertexArray(vao2);
+	glBindBuffer(GL_ARRAY_BUFFER,vbo2);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verticesColorful), verticesColorful, GL_STATIC_DRAW);
+	// ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
+	glVertexAttribPointer(0,  3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), static_cast<void*>(0) );
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0); 
+
+	
+	
+
+
+
+
+
+	//-------------------------------------end
 	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
 
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+
 
 	glCompileShader(fragmentShader);
 
@@ -129,9 +205,14 @@ int main()
 
 	const char* fragmentShaderSource1= "#version 330 core\n"
 		"out vec4 FragColor;\n"
+		"in vec4 colorFromVertex;\n"
+		"uniform vec4 colorUniform;\n"
 		"void main()\n"
 		"{\n"
-		"   FragColor= vec4(0.4f,0.25f,0.72f,1.0f);\n"
+	/*	"   FragColor= vec4(0.4f,0.25f,0.72f,1.0f);\n"*/
+		/*"   FragColor= vec4(colorFromVertex);\n"*/
+	
+		"   FragColor= vec4(colorUniform);\n"
 		"}\0";
 
 	const unsigned int shader_yell = glCreateShader(GL_FRAGMENT_SHADER);
@@ -180,8 +261,7 @@ int main()
 	glGenBuffers(1, &VBO);
 
 
-	int now = 3; 
-	int max = 10;
+
 
 	unsigned int ebo;
 
@@ -261,8 +341,23 @@ int main()
 		// ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+		
+
 
 		glUseProgram(program_yell);
+		//set uniform here
+		//
+		// NOLINT(bugprone-narrowing-conversions)
+		const float time = glfwGetTime();  
+		
+		// ReSharper disable once CppLocalVariableMayBeConst
+		float timeColor = (sin(time) / 2.0f) + 0.5f;
+
+		// ReSharper disable once CppLocalVariableMayBeConst
+		int uniformColorLocation = glGetUniformLocation(program_yell, "colorUniform");
+
+		glUniform4f(uniformColorLocation, 0.0f, timeColor, 0.0f, 1.0f);
+		
 
 		//avo1 init with up data 
 		if(usev1)
@@ -292,15 +387,13 @@ int main()
 			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
 
 			// ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
-			//glVertexAttribIPointer(0, 3, GL_FLOAT,  GL_FALSE, 3*sizeof(float),  static_cast<void*>(0));
-
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast<void*>(0));
 			glEnableVertexAttribArray(0);
-			//unbind vbo
+			//unbind vbo to prevent data from being modified again
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
-			//unbinf vao
+			//also unbind vao here 
 			glBindVertexArray(0);
 
 
@@ -312,7 +405,17 @@ int main()
 		
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+		//draw here a new---------------------start
+		
+		glUseProgram(newProgram);
+		glBindVertexArray(vao2);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+
+		//------------------------------------------end
+
+		//std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -327,16 +430,20 @@ int main()
 	//unbind VAO
 	glBindVertexArray(0);
 
-
-
-	
-	
 	glDeleteProgram(program);
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteProgram(program_yell);
 	glDeleteBuffers(1, &vbo1);
 	glDeleteVertexArrays(1, &vao1);
+
+	
+	glDeleteShader(colorShader);
+	glDeleteShader(colorShader1);
+	glDeleteProgram(newProgram);
+	glDeleteBuffers(1, &vbo2);
+	glDeleteVertexArrays(1, &vbo2);
+	
 	
 
 	glfwTerminate();
