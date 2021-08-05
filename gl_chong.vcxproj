@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\openGL\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\admin\Desktop\glm-master\glm;E:\openGL\include;$(IncludePath)</IncludePath>
     <LibraryPath>E:\openGL\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -143,11 +143,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\openGL\src\glad.c" />
+    <ClCompile Include="image_loader.cpp" />
     <ClCompile Include="sample.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="stb_image.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="awesomeface.png" />
+    <Image Include="cat.jpg" />
+    <Image Include="container.jpg" />
+    <Image Include="containerf.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
