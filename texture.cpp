@@ -5,6 +5,10 @@
 #include <thread>
 
 #include "stb_image.h"
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+
 
 
 
@@ -73,7 +77,7 @@ int main()
 	// load and generate the texture
 	 int width, height, nrChannels;
 	 stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load("cat.jpg", &width, &height, &nrChannels, 0);
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -124,9 +128,10 @@ int main()
 		"layout(location = 2) in vec2 aTexCoord;\n"
 		"out vec3 ourColor;\n"
 		"out vec2 TexCoord;\n"
+		"uniform mat4 transform;\n"
 		"void main()\n"
 		"{\n"
-		"gl_Position = vec4(aPos,1.0);\n"
+		"gl_Position =transform *  vec4(aPos,1.0);\n"
 		"ourColor = aColor;\n"
 		"TexCoord = vec2(aTexCoord.x, aTexCoord.y);\n"
 		"}\n";
@@ -150,7 +155,7 @@ int main()
 		"void main()\n"
 		"{\n"
 		//"FragColor = texture(ourTexture,TexCoord);\n"
-		" FragColor = mix(texture(texture1,TexCoord), texture(texture2,TexCoord),factor);\n"
+		" FragColor = mix(texture(texture1,TexCoord), texture(texture2,TexCoord),0.0) * vec4(ourColor,1.0);\n"
 	   // "FragColor =vec4(ourColor ,1.0f);\n"
 		"}\n";
 
@@ -209,18 +214,36 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		
 		glUseProgram(textureProgram);
+
+
+		//set a matrix
+
+		glm::mat4 trans = glm::mat4(1.0f); //diagonal matrix
+		trans = glm::translate(trans, glm::vec3(0.5f,-0.5f,0.0f));
+		trans = glm::rotate(trans, static_cast<float>(sin(glfwGetTime())), glm::vec3(0.0f,0.0f,1.0f)); 
+		
+		
+		
+		
+		// ReSharper disable once CppInconsistentNaming
+		unsigned int transformLocation = glGetUniformLocation(textureProgram, "transform");
+
+		glUniformMatrix4fv(transformLocation, 1, GL_FALSE,glm::value_ptr(trans) );
+		
 		glUniform1i(glGetUniformLocation(textureProgram, "texture1"), 0);
 		glUniform1i(glGetUniformLocation(textureProgram, "texture2"), 1);
-		glUniform1f(glGetUniformLocation(textureProgram, "factor"), 0.7f);
+		glUniform1f(glGetUniformLocation(textureProgram, "factor"), factor);
 		
 
 		glBindVertexArray(vaoTexture);
+		// ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		
 

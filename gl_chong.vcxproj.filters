@@ -55,5 +55,8 @@
     <Image Include="containerf.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="catie.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
