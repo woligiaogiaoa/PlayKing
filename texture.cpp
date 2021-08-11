@@ -10,6 +10,50 @@
 #include <gtc/type_ptr.hpp>
 
 
+float cubeVertices[] = {
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+};
+
 
 
 void  frame_buffer_size_callback(GLFWwindow* window, const int width, const int height)
@@ -77,7 +121,7 @@ int main()
 	// load and generate the texture
 	 int width, height, nrChannels;
 	 stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("cat.jpg", &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load("catok.png", &width, &height, &nrChannels, 0);
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -88,7 +132,7 @@ int main()
 		std::cout << "Failed to load texture" << std::endl;
 	}
 	stbi_image_free(data);
-
+			
 	unsigned int texture1;
 	glGenTextures(1, &texture1);	
 	glBindTexture(GL_TEXTURE_2D, texture1);
@@ -115,24 +159,26 @@ int main()
 
 	//- ------------------------data and program-----------------------
 
-	float vertices[] = {
+	float	vertices[] = {
 		// positions          // colors           // texture coords
-		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f,   // top right
-		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f,   // bottom right
+		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
 		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f    // top left 
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
 	};
 	const char* textureVertextShader = "#version 330 core\n"
 		"layout(location = 0) in vec3 aPos;\n"
-		"layout(location = 1) in vec3 aColor;\n"
-		"layout(location = 2) in vec2 aTexCoord;\n"
-		"out vec3 ourColor;\n"
+		//"layout(location = 1) in vec3 aColor;\n"
+		"layout(location = 1) in vec2 aTexCoord;\n"
+		//"out vec3 ourColor;\n"
 		"out vec2 TexCoord;\n"
-		"uniform mat4 transform;\n"
+		"uniform mat4 model;\n"
+		"uniform mat4 view;\n"	
+		"uniform mat4 projection;\n"
 		"void main()\n"
 		"{\n"
-		"gl_Position =transform *  vec4(aPos,1.0);\n"
-		"ourColor = aColor;\n"
+		"gl_Position =projection * view *model *  vec4(aPos,1.0); \n"
+		//"ourColor = aColor;\n"
 		"TexCoord = vec2(aTexCoord.x, aTexCoord.y);\n"
 		"}\n";
 
@@ -147,7 +193,7 @@ int main()
 
 	const char* textureFragmentShader = "#version 330 core\n"
 		"out vec4 FragColor;\n"
-		"in vec3 ourColor;\n"
+		//"in vec3 ourColor;\n"
 		"in vec2 TexCoord;\n"
 		"uniform sampler2D texture1;\n"
 		"uniform sampler2D texture2;\n"
@@ -155,7 +201,7 @@ int main()
 		"void main()\n"
 		"{\n"
 		//"FragColor = texture(ourTexture,TexCoord);\n"
-		" FragColor = mix(texture(texture1,TexCoord), texture(texture2,TexCoord),0.0) * vec4(ourColor,1.0);\n"
+		" FragColor = mix(texture(texture1,TexCoord), texture(texture2,TexCoord),0.0) ;\n"
 	   // "FragColor =vec4(ourColor ,1.0f);\n"
 		"}\n";
 
@@ -177,16 +223,16 @@ int main()
 	glGenVertexArrays(1, &vaoTexture);
 	glBindVertexArray(vaoTexture);
 	glBindBuffer(GL_ARRAY_BUFFER, vboTexture);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), static_cast<void*>(0));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5* sizeof(float), static_cast<void*>(0));
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(3* sizeof(float)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3* sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(6* sizeof(float)));
-	glEnableVertexAttribArray(2);
+	/*glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(6* sizeof(float)));
+	glEnableVertexAttribArray(2);*/
 
 	// position attribute
 	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -206,45 +252,94 @@ int main()
 	
 	
 	//-------------------------------end--------------------------------
+
+	glEnable(GL_DEPTH_TEST);
 	
 	while (!glfwWindowShouldClose(window))
 	{
 		process_input(window);
 		//rendering here
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture1);
-		
-		glUseProgram(textureProgram);
 
-
-		//set a matrix
-
-		glm::mat4 trans = glm::mat4(1.0f); //diagonal matrix
-		trans = glm::translate(trans, glm::vec3(0.5f,-0.5f,0.0f));
-		trans = glm::rotate(trans, static_cast<float>(sin(glfwGetTime())), glm::vec3(0.0f,0.0f,1.0f)); 
-		
-		
-		
-		
-		// ReSharper disable once CppInconsistentNaming
-		unsigned int transformLocation = glGetUniformLocation(textureProgram, "transform");
-
-		glUniformMatrix4fv(transformLocation, 1, GL_FALSE,glm::value_ptr(trans) );
-		
 		glUniform1i(glGetUniformLocation(textureProgram, "texture1"), 0);
 		glUniform1i(glGetUniformLocation(textureProgram, "texture2"), 1);
 		glUniform1f(glGetUniformLocation(textureProgram, "factor"), factor);
 		
+		glUseProgram(textureProgram);
 
 		glBindVertexArray(vaoTexture);
+
+
+		//set a matrix
+
+		glm::mat4 model = glm::mat4(1.0f); //diagonal matrix
+
+		glm::mat4 view = glm::mat4(1.0f);
+
+		glm::mat4 projection = glm::mat4(1.0f);
+
+		
+
+		glm::vec3 cubePositions[] = {
+	glm::vec3(0.0f,  0.0f,  0.0f),
+	glm::vec3(2.0f,  5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(-3.8f, -2.0f, -12.3f),
+	glm::vec3(2.4f, -0.4f, -3.5f),
+	glm::vec3(-1.7f,  3.0f, -7.5f),
+	glm::vec3(1.3f, -2.0f, -2.5f),
+	glm::vec3(1.5f,  2.0f, -2.5f),
+	glm::vec3(1.5f,  0.2f, -1.5f),
+	glm::vec3(-1.3f,  1.0f, -1.5f)
+		};
+
+		// ReSharper disable once CppInconsistentNaming
+
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+		unsigned int viewLocation = glGetUniformLocation(textureProgram, "view");
+		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+
+		unsigned int modelLocation = glGetUniformLocation(textureProgram, "model");
+	
+
+		unsigned int projectionLocation = glGetUniformLocation(textureProgram, "projection");
+		glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+
+	
+		// model = glm::rotate(model, static_cast<float>(glfwGetTime()) *glm::radians(-55.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+		
+		
+
+		float time = glfwGetTime();
+		
+		for(unsigned int i=0;i<10;i++)
+		{
+			glm::mat4 model1 = glm::mat4(1.0f);
+			model1 = glm::translate(model1, cubePositions[i]);
+			const float angle = static_cast<float>(i) * 20.0f; //½Ç¶È
+			model1 = glm::rotate(model1, ((glm::radians(angle)+time)*0.3f), glm::vec3(1.0f, 0.3f, 0.5f));
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
+
+		
+
+		
+	
+		
+
+		
 		// ReSharper disable once CppZeroConstantCanBeReplacedWithNullptr
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glDrawArrays(GL_TRIANGLES, 0,36);
 		
 
 		glfwSwapBuffers(window);

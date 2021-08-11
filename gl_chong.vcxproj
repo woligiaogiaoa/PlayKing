@@ -157,6 +157,7 @@
     <Image Include="awesomeface.png" />
     <Image Include="cat.jpg" />
     <Image Include="catie.jpg" />
+    <Image Include="catie.png" />
     <Image Include="container.jpg" />
     <Image Include="containerf.jpg" />
   </ItemGroup>
