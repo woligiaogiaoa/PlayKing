@@ -10,6 +10,63 @@
 #include <gtc/type_ptr.hpp>
 
 
+float lastX = 400, lastY = 300;
+float yaw = -90.0f, pitch = 0.0f;
+
+glm::vec3 direction;
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+bool firstMouse = true;
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+
+	if (firstMouse) // initially set to true
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+	
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+	lastX = xpos;
+	lastY = ypos;
+
+	const float sensitivity = 0.1f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	;
+	direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	direction.y = sin(glm::radians(pitch));
+	direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(direction);
+}
+
+float fov = 45.0f;
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	// ReSharper disable once CppCStyleCast
+	fov -= (float)(yoffset);
+	if (fov < 1.0f)
+		fov = 1.0f;
+	if (fov > 45.0f)
+		fov = 45.0f;
+}
+
+
 float cubeVertices[] = {
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -54,8 +111,11 @@ float cubeVertices[] = {
 	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
 
 
+	
 void  frame_buffer_size_callback(GLFWwindow* window, const int width, const int height)
 {
 	glViewport(0, 0, width, height);
@@ -63,8 +123,19 @@ void  frame_buffer_size_callback(GLFWwindow* window, const int width, const int 
 
 float factor = 0.2f;
 
+
+float cameraSpeed = 0.01f; // adjust accordingly
+
+
+
 void process_input(GLFWwindow* window)
 {
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
+
+	cameraSpeed = 2.5f * deltaTime;
+	
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
@@ -81,6 +152,15 @@ void process_input(GLFWwindow* window)
 		if (factor <= 0.0f)
 			factor = 0.0f;
 	}
+	
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
 
 
@@ -107,8 +187,11 @@ int main()
 		return -1;
 	}
 	glViewport(0, 0, 800, 600);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetFramebufferSizeCallback(window, frame_buffer_size_callback);
 
-			glfwSetFramebufferSizeCallback(window, frame_buffer_size_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -210,6 +293,8 @@ int main()
 		1, 2, 3    // second triangle
 	};
 
+	
+
 	glShaderSource(fShaderTexture, 1, &textureFragmentShader, nullptr);
 	glCompileShader(fShaderTexture);
 	
@@ -302,10 +387,13 @@ int main()
 
 		// ReSharper disable once CppInconsistentNaming
 
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-		projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+		//we are looking at a fixed position
+		//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		//projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+		std::cout<<"perspective angle: "<<fov<<std::endl;
 		unsigned int viewLocation = glGetUniformLocation(textureProgram, "view");
-		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+		//
 
 		unsigned int modelLocation = glGetUniformLocation(textureProgram, "model");
 	
@@ -319,13 +407,30 @@ int main()
 		
 
 		float time = glfwGetTime();
+
+		const float radius = 10.0f;
+		float camX = sin(time) * radius;
+		float camZ = cos(time) * radius;	
+		//	"gl_Position =projection * view *model *  vec4(aPos,1.0); \n"
+		
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+
+		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 		
 		for(unsigned int i=0;i<10;i++)
 		{
 			glm::mat4 model1 = glm::mat4(1.0f);
+			//chapter1 : we translate and rotate it
 			model1 = glm::translate(model1, cubePositions[i]);
 			const float angle = static_cast<float>(i) * 20.0f; //½Ç¶È
-			model1 = glm::rotate(model1, ((glm::radians(angle)+time)*0.3f), glm::vec3(1.0f, 0.3f, 0.5f));
+			model1 = glm::rotate(model1, ((glm::radians(angle) + time) * 0.3f), glm::vec3(1.0f, 0.3f, 0.5f));
+
+			
+
+
+		
+			// this time we want to use look at matrix
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model1));
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
